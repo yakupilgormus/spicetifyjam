@@ -1,0 +1,36 @@
+name: Cross-Platform CLI Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build Bridge
+      working-directory: main/rust
+      run: cargo build --release
+
+    - name: Run CLI Help Check (Windows)
+      if: matrix.os == 'windows-latest'
+      working-directory: main/rust
+      run: target/release/jam-bridge.exe --help
+
+    - name: Run CLI Help Check (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      working-directory: main/rust
+      run: ./target/release/jam-bridge --help
